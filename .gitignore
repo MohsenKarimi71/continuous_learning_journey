@@ -1,0 +1,6 @@
+db.sqlite3
+__pycache__
+*.pyc
+geckodriver.exe
+geckodriver.log
+.env

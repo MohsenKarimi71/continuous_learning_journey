@@ -20,5 +20,6 @@ from posts import views as post_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', post_views.home_page, name="home_page")
+    path('', post_views.home_page, name="home_page"),
+    path('categories/new/', post_views.new_category, name="new_category"),
 ]

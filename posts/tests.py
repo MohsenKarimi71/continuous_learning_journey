@@ -14,3 +14,6 @@ class AddNewCategoryPageTest(TestCase):
         response = self.client.get('/categories/new/')
         self.assertTemplateUsed(response, "posts/add_new_category.html")
     
+    def test_redirects_after_POST(self):
+        response = self.client.post("/categories/new/", data={})
+        self.assertRedirects(response, "/categories/")

@@ -1,10 +1,14 @@
+import time
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import WebDriverException
 
 from django.test import LiveServerTestCase
 
+
+MAX_WAIT = 10
 ##############################################################################
 class NewVisitorTest(LiveServerTestCase):
     
@@ -13,6 +17,16 @@ class NewVisitorTest(LiveServerTestCase):
     
     def tearDown(self):
         self.browser.quit()
+    
+    def wait_for(self, fn):
+        start_time = time.time()
+        while True:
+            try:
+                return fn()
+            except (WebDriverException, AssertionError) as e:
+                if time.time() - start_time > MAX_WAIT:
+                    raise e
+                time.sleep(0.5)
     
     def test_can_add_a_new_category(self):
         #################### User Story 1: Adding new category ###############
@@ -32,13 +46,16 @@ class NewVisitorTest(LiveServerTestCase):
         add_new_category_link = self.browser.find_element(By.ID, "add-new-category-link")
         self.assertEqual(add_new_category_link.text, "add new category")
 
-        # He clicks on that button and the site redirected to a new page:
+        # He clicks on that button and the site goes to a new page:
         #   "adding new category" page
         add_new_category_link.click()
 
         # In the new page, he notices that the page title and header contain:
         #   "New Category"
-        self.assertEqual(self.browser.title, "New Category")
+        self.wait_for(lambda: self.assertEqual(
+            self.browser.title, "New Category"
+        ))
+        
         main_header_text = self.browser.find_element(By.TAG_NAME, 'h1').text
         self.assertEqual(main_header_text, "New Category")
 
@@ -54,11 +71,13 @@ class NewVisitorTest(LiveServerTestCase):
         input_box.send_keys("programming stuffs")
         input_box.send_keys(Keys.ENTER)
 
-        # The site redirects to a new page:
+        # The site goes to a new page:
         #   "list of added categories" page
         # Ali notices that title and header of the new page contain:
         #   "list of your categories"
-        self.assertEqual(self.browser.title, "list of your categories")
+        self.wait_for(lambda: self.assertEqual(
+            self.browser.title, "list of your categories"
+        ))
         main_header_text = self.browser.find_element(By.TAG_NAME, 'h1').text
         self.assertEqual(main_header_text, "list of your categories")
 

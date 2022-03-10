@@ -10,7 +10,11 @@
     <h1>list of your categories</h1>
     
     <table id="categories-table">
-        
+        {% for category in categories %}
+        <tr>
+            <td>{{ forloop.counter }}: {{ category.title }}</td>
+        </tr>
+        {% endfor %}
     </table>
 </body>
 </html>

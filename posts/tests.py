@@ -1,4 +1,3 @@
-from unicodedata import category
 from django.test import TestCase
 from posts.models import Category
 
@@ -14,6 +13,14 @@ class AddNewCategoryPageTest(TestCase):
     def test_view_uses_correct_html(self):
         response = self.client.get('/categories/new/')
         self.assertTemplateUsed(response, "posts/add_new_category.html")
+
+    def test_view_can_save_a_POST_request(self):
+        self.client.post("/categories/new/", data={
+            'new_category_title': 'Programming'
+        })
+        self.assertEqual(Category.objects.count(), 1)
+        saved_object = Category.objects.first()
+        self.assertEqual(saved_object.title, 'Programming')
     
     def test_redirects_after_POST(self):
         response = self.client.post("/categories/new/", data={})
@@ -25,6 +32,15 @@ class CategoryListPageTest(TestCase):
     def test_view_uses_correct_html(self):
         response = self.client.get("/categories/")
         self.assertTemplateUsed(response, "posts/category_list.html")
+    
+    def test_view_displays_categoris(self):
+        Category.objects.create(title="Programming")
+        Category.objects.create(title="English")
+
+        response = self.client.get("/categories/")
+
+        self.assertContains(response, "Programming")
+        self.assertContains(response, "English")
 
 
 class CategoryModelTest(TestCase):

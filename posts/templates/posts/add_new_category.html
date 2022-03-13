@@ -5,10 +5,14 @@
 {% endblock %}
 
 {% block body %}
-    <h1>New Category</h1>
+    <div class="text-center">
+        <h1 class="mt-3 mb-5">New Category</h1>
 
-    <form method="post">
-        {% csrf_token %}
-        <input id="new-category-input" name="new_category_title" type="text" placeholder="Enter a new category">
-    </form>
+        <div class="px-5">
+            <form method="post">
+                {% csrf_token %}
+                <input id="new-category-input" name="new_category_title" type="text" placeholder="Enter a new category" class="form-control">
+            </form>
+        </div>
+    </div>
 {% endblock %}

@@ -5,13 +5,23 @@
 {% endblock %}
 
 {% block body %}
-    <h1>list of your categories</h1>
-    
-    <table id="categories-table">
-        {% for category in categories %}
-        <tr>
-            <td>{{ forloop.counter }}: {{ category.title }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <h1 class="mt-3 mb-5">list of your categories</h1>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-12">
+                <table id="categories-table" class="table">
+                    {% for category in categories %}
+                    <tr>
+                        <td>{{ forloop.counter }}: {{ category.title }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    </div>
 {% endblock %}

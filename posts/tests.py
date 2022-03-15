@@ -1,5 +1,9 @@
+from django.core.exceptions import ValidationError
 from django.test import TestCase
+from django.utils.html import escape
+
 from posts.models import Category
+
 
 class HomePageTest(TestCase):
     
@@ -23,8 +27,68 @@ class AddNewCategoryPageTest(TestCase):
         self.assertEqual(saved_object.title, 'Programming')
     
     def test_redirects_after_POST(self):
-        response = self.client.post("/categories/new/", data={})
+        response = self.client.post("/categories/new/", data={
+            'new_category_title': 'some category'
+        })
         self.assertRedirects(response, "/categories/")
+    
+    def test_empty_title_validation_error_is_send_back_to_add_new_category_template(self):
+        response = self.client.post('/categories/new/', data={
+            'new_category_title': ''
+        })
+        self.assertEqual(response.status_code, 200)
+        expected_error_message = escape('This field cannot be blank')
+        self.assertContains(response, expected_error_message)
+    
+    def test_category_with_empty_title_is_not_saved(self):
+        self.client.post('/categories/new/', data={
+            'new_category_title': ''
+        })
+        self.assertEqual(Category.objects.all().count(), 0)
+    
+    def test_white_space_only_title_validation_error_is_send_back_to_add_new_category_template(self):
+        response = self.client.post('/categories/new/', data={
+            'new_category_title': ' '
+        })
+        self.assertEqual(response.status_code, 200)
+        expected_error_message = escape('This field cannot be blank')
+        self.assertContains(response, expected_error_message)
+    
+    def test_category_with_only_white_speces_in_title_is_ont_saved(self):
+        self.client.post('/categories/new/', data={
+            'new_category_title': ' '
+        })
+        self.assertEqual(Category.objects.all().count(), 0)
+
+    def test_unique_title_validation_error_is_send_back_to_add_new_category_template(self):
+        title = "some title"
+        self.client.post("/categories/new/", data={
+            "new_category_title": title
+        })
+
+        response = self.client.post("/categories/new/", data={
+            "new_category_title": title
+        })
+
+        self.assertEqual(response.status_code, 200)
+        expected_error_message = "Category with this Title already exists"
+        self.assertContains(response, expected_error_message)
+
+    def test_category_with_unique_title_validation_error_is_not_saved(self):
+        title = "some title"
+        response = self.client.post("/categories/new/", data={
+            "new_category_title": title
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Category.objects.all().count(), 1)
+
+        response = self.client.post("/categories/new/", data={
+            "new_category_title": title
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Category.objects.all().count(), 1)
+
+
 
 
 class CategoryListPageTest(TestCase):
@@ -58,3 +122,15 @@ class CategoryModelTest(TestCase):
         self.assertEqual(saved_categories.count(), 2)
         self.assertEqual(saved_categories[0].title, "Programming")
         self.assertEqual(saved_categories[1].title, "English")
+    
+    def test_can_not_save_category_with_empty_title(self):
+        category = Category(title='')
+        with self.assertRaises(ValidationError):
+            category.save()
+            category.full_clean()
+    
+    def test_can_not_save_multiple_categoris_with_same_name(self):
+        Category.objects.create(title="some title")
+        with self.assertRaises(ValidationError):
+            second_category = Category.objects.create(title= "some title")
+            second_category.full_clean()

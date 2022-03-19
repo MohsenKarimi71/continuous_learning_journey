@@ -17,7 +17,11 @@
                 <table id="categories-table" class="table">
                     {% for category in categories %}
                     <tr>
-                        <td>{{ forloop.counter }}: {{ category.title }}</td>
+                        <td>
+                            <a href="/categories/{{category.id}}/">
+                                {{ forloop.counter }}: {{ category.title }}
+                            </a>
+                        </td>
                     </tr>
                     {% endfor %}
                 </table>

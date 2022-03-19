@@ -32,3 +32,10 @@ def category_list(request):
     return render(request, "posts/category_list.html", {
         "categories": categories
     })
+
+
+def category_detail(request, id):
+    category = Category.objects.get(id=id)
+    return render(request, "posts/category_detail.html", {
+        "category": category
+    })

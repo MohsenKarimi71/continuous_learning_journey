@@ -1,3 +1,6 @@
+import re
+from turtle import title
+from urllib import response
 from django.test import TestCase
 from django.utils.html import escape
 
@@ -102,3 +105,27 @@ class CategoryListPageTest(TestCase):
 
         self.assertContains(response, "Programming")
         self.assertContains(response, "English")
+
+
+class CategoryDetailPageTest(TestCase):
+    
+    def test_view_uses_correct_html(self):
+       category = Category.objects.create(title="Programming")
+       response = self.client.get(f"/categories/{category.id}/")
+       
+       self.assertTemplateUsed(response, "posts/category_detail.html")
+    
+    def test_view_display_correct_category(self):
+        first_category = Category.objects.create(title="Programming")
+        second_category = Category.objects.create(title="network")
+        response = self.client.get(f"/categories/{first_category.id}/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Programming")
+        self.assertNotContains(response, "network")
+
+        response = self.client.get(f"/categories/{second_category.id}/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "network")
+        self.assertNotContains(response, "Programming")

@@ -67,7 +67,7 @@ class NewVisitorTest(FunctionalTest):
         self.assertEqual(title_input.get_attribute("placeholder"), "Enter subject Title")
 
         # He enters "Python" in the input box
-        input_box.send_keys("Python")
+        title_input.send_keys("Python")
 
         # There is a text-area input for description with placeholder: "Enter subject description Here..."
         description_input = self.browser.find_element(By.ID, "subject-description")

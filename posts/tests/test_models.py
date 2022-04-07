@@ -29,5 +29,5 @@ class CategoryModelTest(TestCase):
     def test_can_not_save_multiple_categoris_with_same_name(self):
         Category.objects.create(title="some title")
         with self.assertRaises(ValidationError):
-            second_category = Category.objects.create(title= "some title")
+            second_category = Category(title= "some title")
             second_category.full_clean()

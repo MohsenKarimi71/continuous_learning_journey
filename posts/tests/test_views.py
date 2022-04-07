@@ -1,10 +1,8 @@
-import re
-from turtle import title
-from urllib import response
+from unicodedata import category
 from django.test import TestCase
 from django.utils.html import escape
 
-from posts.models import Category
+from posts.models import Category, Subject
 
 
 class HomePageTest(TestCase):
@@ -115,17 +113,98 @@ class CategoryDetailPageTest(TestCase):
        
        self.assertTemplateUsed(response, "posts/category_detail.html")
     
-    def test_view_display_correct_category(self):
+    def test_view_sends_and_uses_correct_category(self):
         first_category = Category.objects.create(title="Programming")
-        second_category = Category.objects.create(title="network")
-        response = self.client.get(f"/categories/{first_category.id}/")
+        second_category = Category.objects.create(title="Python Programming")
 
+        response = self.client.get(f"/categories/{first_category.id}/")
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Programming")
-        self.assertNotContains(response, "network")
+        self.assertEqual(response.context['category'].id, first_category.id)
+        self.assertContains(response, first_category.title)
 
         response = self.client.get(f"/categories/{second_category.id}/")
-
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "network")
-        self.assertNotContains(response, "Programming")
+        self.assertEqual(response.context['category'].id, second_category.id)
+        self.assertContains(response, second_category.title)
+    
+    def test_view_sends_and_uses_correct_subjects_for_category(self):
+        first_category = Category.objects.create(title="Programming")
+        first_category_first_subject = Subject.objects.create(
+            title="Python",
+            description="This subject is about python programming language.",
+            category=first_category
+        )
+        first_category_second_subject = Subject.objects.create(
+            title="Jave",
+            description="This subject is about Jave programming language.",
+            category=first_category
+        )
+
+        second_category = Category.objects.create(title="English")
+        second_category_first_subject = Subject.objects.create(
+            title="Grammer",
+            description="This subject is about grammer in English language.",
+            category=second_category
+        )
+        second_category_second_subject = Subject.objects.create(
+            title="Reading",
+            description="This subject is about reading in English language.",
+            category=second_category
+        )
+
+        response = self.client.get(f"/categories/{first_category.id}/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, first_category_first_subject.title)
+        self.assertContains(response, first_category_second_subject.title)
+
+        self.assertNotContains(response, second_category_first_subject.title)
+        self.assertNotContains(response, second_category_second_subject.title)
+
+class AddNewSubjectPageTest(TestCase):
+
+    def test_view_uses_correct_html(self):
+        category = Category.objects.create(title="Programming")
+        response = self.client.get(f"/categories/{category.id}/new/")
+
+        self.assertTemplateUsed(response, "posts/add_new_subject.html")
+    
+    def test_view_sends_and_uses_correct_category(self):
+        first_category = Category.objects.create(title="Pragramming")
+        second_category = Category.objects.create(title="Network")
+
+        response = self.client.get(f"/categories/{first_category.id}/new/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['category'].id, first_category.id)
+        self.assertContains(response, first_category.title)
+
+        response = self.client.get(f"/categories/{second_category.id}/new/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['category'].id, second_category.id)
+        self.assertContains(response, second_category.title)
+    
+    def test_view_can_save_a_POST_request(self):
+        category = Category.objects.create(title="Programming")
+        self.client.post(
+            f"/categories/{category.id}/new/",
+            data={
+                "new_subject_title": "Python",
+                "new_subject_description": "This subject is about Python."
+            }
+        )
+
+        self.assertEqual(category.subject_set.count(), 1)
+        saved_subject = category.subject_set.first()
+        self.assertEqual(saved_subject.title, "Python")
+        self.assertEqual(saved_subject.description, "This subject is about Python.")
+
+    def test_redirects_after_POST(self):
+        category = Category.objects.create(title="Programming")
+        response = self.client.post(
+            f"/categories/{category.id}/new/",
+            data={
+                "new_subject_title": "Python",
+                "new_subject_description": "This subject is about Python."
+            }
+        )
+
+        self.assertRedirects(response, f"/categories/{category.id}/")

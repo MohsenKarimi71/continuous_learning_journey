@@ -3,7 +3,7 @@ from django.shortcuts import redirect, render
 
 import ast
 
-from posts.models import Category
+from posts.models import Category, Subject
 
 # Create your views here.
 
@@ -34,8 +34,28 @@ def category_list(request):
     })
 
 
-def category_detail(request, id):
-    category = Category.objects.get(id=id)
+def category_detail(request, category_id):
+    category = Category.objects.get(id=category_id)
+    subjects = Subject.objects.select_related("category").filter(category=category)
     return render(request, "posts/category_detail.html", {
+        "category": category,
+        "subjects": subjects
+    })
+
+
+def new_subject(request, category_id):
+    category = Category.objects.get(id=category_id)
+
+    if request.method == "POST":
+        title = request.POST.get('new_subject_title', "")
+        description = request.POST.get('new_subject_description', "")
+        Subject.objects.create(
+            title=title,
+            description=description,
+            category=category
+        )
+
+        return redirect(f"/categories/{category_id}/")
+    return render(request, "posts/add_new_subject.html", {
         "category": category
     })

@@ -1,4 +1,3 @@
-from unicodedata import category
 from django.test import TestCase
 from django.utils.html import escape
 
@@ -160,6 +159,7 @@ class CategoryDetailPageTest(TestCase):
         self.assertNotContains(response, second_category_first_subject.title)
         self.assertNotContains(response, second_category_second_subject.title)
 
+
 class AddNewSubjectPageTest(TestCase):
 
     def test_view_uses_correct_html(self):
@@ -208,3 +208,72 @@ class AddNewSubjectPageTest(TestCase):
         )
 
         self.assertRedirects(response, f"/categories/{category.id}/")
+
+    def test_empty_title_validation_error_is_send_back_to_add_new_subject_template(self):
+        category = Category.objects.create(title="Programming")
+        response = self.client.post(
+            f"/categories/{category.id}/new/",
+            data={
+                "new_subject_title": "",
+                "new_subject_description": "This is some descriotion."
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+        expected_error_message = escape('This field cannot be blank')
+        self.assertContains(response, expected_error_message)
+
+    def test_subject_with_empty_title_is_not_saved(self):
+        category = Category.objects.create(title="Programming")
+        response = self.client.post(
+            f"/categories/{category.id}/new/",
+            data={
+                "new_subject_title": "",
+                "new_subject_description": "This is some description."
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Subject.objects.count(), 0)
+
+    def test_white_space_only_title_validation_error_is_send_back_to_add_new_subject_template(self):
+        category = Category.objects.create(title="Programming")
+        response = self.client.post(
+            f"/categories/{category.id}/new/",
+            data={
+                "new_subject_title": "   ",
+                "new_subject_description": "This is some descriotion."
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+        expected_error_message = escape('This field cannot be blank')
+        self.assertContains(response, expected_error_message)
+
+    def test_subject_with_only_white_speces_in_title_is_ont_saved(self):
+        category = Category.objects.create(title="Programming")
+        response = self.client.post(
+            f"/categories/{category.id}/new/",
+            data={
+                "new_subject_title": "   ",
+                "new_subject_description": "This is some description."
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Subject.objects.count(), 0)
+
+    def test_unique_title_validation_error_for_subjects_of_a_category_is_send_back_to_template(self):
+        category = Category.objects.create(title="Programming")
+
+        title = "some title"
+        # create first subject
+        response = self.client.post(f"/categories/{category.id}/new/", data={
+            "new_subject_title": title,
+            "new_subject_description": "This is some description."
+        })
+        self.assertEqual(response.status_code, 302)
+
+        # creating second subject with same title
+        response = self.client.post(f"/categories/{category.id}/new/", data={
+            "new_subject_title": title,
+            "new_subject_description": "Some new description."
+        })
+        expected_error_message = "Subject with this Title and Category already exists."
+        self.assertContains(response, expected_error_message)

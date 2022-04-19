@@ -47,13 +47,21 @@ def new_subject(request, category_id):
     category = Category.objects.get(id=category_id)
 
     if request.method == "POST":
-        title = request.POST.get('new_subject_title', "")
+        title = request.POST.get('new_subject_title', "").strip()
         description = request.POST.get('new_subject_description', "")
-        Subject.objects.create(
+        subject = Subject(
             title=title,
             description=description,
             category=category
         )
+        try:
+            subject.full_clean()
+            subject.save()
+        except ValidationError as e:
+            return render(request, "posts/add_new_subject.html", {
+                "error_messages": ast.literal_eval(str(e))
+                }
+            )
 
         return redirect(f"/categories/{category_id}/")
     return render(request, "posts/add_new_subject.html", {

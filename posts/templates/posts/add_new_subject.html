@@ -11,8 +11,18 @@
 
     <form method="post">
         {% csrf_token %}
-        <input id="subject-title" name="new_subject_title" type="text"
-            placeholder="Enter subject Title">
+        {% if error_messages %}
+            <input id="subject-title" name="new_subject_title" type="text" 
+                placeholder="Enter subject Title"
+                class="form-control is-invalid">
+
+                <div class="invalid-feedback">
+                    {{ error_messages }}
+                </div>
+        {% else %}
+            <input id="subject-title" name="new_subject_title" type="text"
+                placeholder="Enter subject Title">
+        {% endif %}
 
         <textarea id="subject-description" name="new_subject_description"
             placeholder="Enter subject description Here...">

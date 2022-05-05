@@ -1,35 +1,38 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New subject for {{ category.title }} Category</title>
-</head>
-<body>
-    <h1>New subject for {{ category.title }} Category</h1> 
+{% extends 'posts/base.html' %}
 
-    <form method="post">
-        {% csrf_token %}
-        {% if error_messages %}
-            <input id="subject-title" name="new_subject_title" type="text" 
-                placeholder="Enter subject Title"
-                class="form-control is-invalid">
+{% block title_text %}
+    New subject for {{ category.title }} Category
+{% endblock %}
 
-                <div class="invalid-feedback">
-                    {{ error_messages }}
-                </div>
-        {% else %}
-            <input id="subject-title" name="new_subject_title" type="text"
-                placeholder="Enter subject Title">
-        {% endif %}
+{% block body %}
+    <div>
+        <div class="text-center">
+            <h1 class="mt-3 mb-5">New subject for {{ category.title }} Category</h1> 
+        </div>
+        <div class="px-5">
+            <form method="post">
+                {% csrf_token %}
+                {% if error_messages %}
+                    <label for="subject-title" class="form-label">Title</label>
+                    <input id="subject-title" name="new_subject_title" type="text" 
+                        placeholder="Enter subject Title"
+                        class="form-control is-invalid">
 
-        <textarea id="subject-description" name="new_subject_description"
-            placeholder="Enter subject description Here...">
-        </textarea>
+                        <div class="invalid-feedback mt-1 mb-4">
+                            {{ error_messages }}
+                        </div>
+                {% else %}
+                    <label for="subject-title" class="form-label">Title</label>
+                    <input id="subject-title" name="new_subject_title" type="text"
+                        placeholder="Enter subject Title"
+                        class="form-control mb-3">
+                {% endif %}
 
-        <button id="submit-form" type="submit">Create subject</button>
-    </form>
-    
-</body>
-</html>
+                    <label for="subject-description" class="form-label">Description</label>
+                    <textarea id="subject-description" name="new_subject_description" placeholder="Enter subject description Here"class="form-control"></textarea>
+
+                <button id="submit-form" type="submit" class="btn btn-success mt-3">Create subject</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
